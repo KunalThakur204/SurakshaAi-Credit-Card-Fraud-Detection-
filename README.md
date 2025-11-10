@@ -89,7 +89,7 @@ Category	Amount
 Suraksha AI doesn't just protect; it pays for itself faster than a sunrise 🌅⚡
 
 🛠️ Installation
-git clone https://github.com/yourusername/suraksha-ai.git
+git clone https://github.com/KunalThakur204/SurakshaAi-Credit-Card-Fraud-Detection-/edit/main/README.md
 cd suraksha-ai
 pip install -r requirements.txt
 
