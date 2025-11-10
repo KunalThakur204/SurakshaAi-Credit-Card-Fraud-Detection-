@@ -1,0 +1,209 @@
+{% extends "layout.html" %}
+{% block title %}Home - Suraksha AI{% endblock %}
+{% block content %}
+
+<section class="hero text-center text-white">
+  <div class="container">
+    <span class="badge bg-light text-dark mb-3">Fast • Elegant • Developer‑Friendly</span>
+    <h1 class="display-5 fw-bold">AI‑Powered Credit Card Fraud Detection</h1>
+    <p class="lead mt-3">Analyze transactions with beautiful dashboards, instant risk scoring, and zero external DB setup.</p>
+    <div class="mt-4">
+      <a href="{{ url_for('register_page') }}" class="btn btn-light btn-lg me-2">Get Started</a>
+      <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-light btn-lg">Try Analyzer</a>
+    </div>
+
+    <!-- Trust badges -->
+    <div class="d-flex flex-wrap justify-content-center gap-3 mt-4">
+      <span class="badge bg-success">No DB required</span>
+      <span class="badge bg-info">Chart.js Visuals</span>
+      <span class="badge bg-warning text-dark">Optional ML (.pkl)</span>
+      <span class="badge bg-primary">JSON Backup</span>
+    </div>
+  </div>
+</section>
+
+<!-- Key metrics -->
+<div class="container my-5">
+  <div class="row g-4 text-center">
+    <div class="col-6 col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h2 class="text-gradient counter mb-0" data-target="32">0</h2>
+          <small class="text-muted">Signals Analyzed</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h2 class="text-gradient counter mb-0" data-target="200">0</h2>
+          <small class="text-muted">Avg. Latency (ms)</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h2 class="text-gradient counter mb-0" data-target="5">0</h2>
+          <small class="text-muted">Setup (mins)</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h2 class="text-gradient counter mb-0" data-target="0">0</h2>
+          <small class="text-muted">DB Dependencies</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature highlights -->
+<div class="container">
+  <div class="row g-4 text-center">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h4 class="text-gradient">🔍 Deep Analysis</h4>
+          <p>Behavioral, device, merchant, location — sab signals ko blend karke ek clean fraud score generate hota hai.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h4 class="text-gradient">📊 Visual Insights</h4>
+          <p>Probability bars, session stats, trend charts — stakeholders ko samjhana bahut easy ho jata hai.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h4 class="text-gradient">🛡️ Simple & Fast</h4>
+          <p>LocalStorage based flow for dev. One‑click JSON backup to server for users & predictions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How it works -->
+<div class="container my-5">
+  <div class="card">
+    <div class="card-header"><strong>How It Works</strong></div>
+    <div class="card-body">
+      <div class="row g-4 text-center">
+        <div class="col-md-3">
+          <div class="p-3">
+            <div class="display-6 mb-2">📝</div>
+            <h6 class="mb-1">1) Add Details</h6>
+            <small class="text-muted">Transaction + risk scores (0.0–1.0)</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3">
+            <div class="display-6 mb-2">🤖</div>
+            <h6 class="mb-1">2) Run Model</h6>
+            <small class="text-muted">Your .pkl or smart dummy scorer</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3">
+            <div class="display-6 mb-2">📈</div>
+            <h6 class="mb-1">3) Get Insights</h6>
+            <small class="text-muted">Charts, stats, probabilities</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3">
+            <div class="display-6 mb-2">💾</div>
+            <h6 class="mb-1">4) Auto Backup</h6>
+            <small class="text-muted">JSON snapshots in /data</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Advanced features -->
+<div class="container my-5">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="text-gradient">🧠 Pluggable ML Model</h5>
+          <p><code>fraud_model.pkl</code> drop-in se real predictions. Agar model nahi, to out-of-the-box dummy scorer seamless chal jata hai.</p>
+          <ul class="mb-0">
+            <li>scikit-learn compatibility</li>
+            <li>predict_proba() support</li>
+            <li>Feature-order safety checks</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="text-gradient">🔐 Dev‑Mode Privacy</h5>
+          <p>By default, data browser ke LocalStorage me. Optional auto-backup: <code>data/users.json</code>, <code>data/predictions.json</code>.</p>
+          <ul class="mb-0">
+            <li>No external DB in development</li>
+            <li>Export/backup ready</li>
+            <li>Easy to switch to real DB later</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Final CTA -->
+<div class="container my-5">
+  <div class="card text-center">
+    <div class="card-body">
+      <h3 class="mb-2">Start detecting fraud in minutes</h3>
+      <p class="text-muted mb-3">Spin up locally, analyze confidently, scale when you’re ready.</p>
+      <a href="{{ url_for('register_page') }}" class="btn btn-primary btn-lg me-2">Create Account</a>
+      <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-primary btn-lg">Open Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<!-- Counter animation -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const els = document.querySelectorAll('.counter');
+  const animate = (el) => {
+    const target = Number(el.getAttribute('data-target')) || 0;
+    const duration = 1200;
+    const start = performance.now();
+
+    const step = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const val = Math.floor(p * target);
+      el.textContent = target === 200 ? val : (val + (target >= 30 ? '+' : ''));
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = target === 200 ? target : (target >= 30 ? target + '+' : target);
+    };
+    requestAnimationFrame(step);
+  };
+
+  // Trigger when visible
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animate(e.target);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  els.forEach(el => io.observe(el));
+});
+</script>
+
+{% endblock %}

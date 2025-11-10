@@ -1,0 +1,188 @@
+{% extends "layout.html" %}
+{% block title %}Contact - Suraksha AI{% endblock %}
+{% block content %}
+
+<section class="hero text-center text-white">
+  <div class="container">
+    <h1 class="display-6 fw-bold">Contact Us</h1>
+    <p class="lead mt-2">Questions, feedback, or partnership ideas? We’d love to hear from you.</p>
+  </div>
+</section>
+
+<div class="container my-5">
+
+  <!-- Quick contact info -->
+  <div class="row g-4 mb-4 text-center">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="text-gradient">📧 Support Email</h5>
+          <p class="mb-0">support@suraksha.ai</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="text-gradient">📞 Phone</h5>
+          <p class="mb-0">+91 99999 99999</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="text-gradient">📍 Address</h5>
+          <p class="mb-0">Bengaluru, Karnataka, India</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact form -->
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header"><strong>Send us a message</strong></div>
+        <div class="card-body">
+          <div id="contactAlert" class="alert d-none" role="alert"></div>
+
+          <form id="contactForm" novalidate>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Your Name</label>
+                <input class="form-control" id="c_name" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="c_email" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone (optional)</label>
+                <input class="form-control" id="c_phone" placeholder="+91-XXXXXXXXXX">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Subject</label>
+                <input class="form-control" id="c_subject" placeholder="E.g., Pricing, Bug, Access">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="c_category">
+                  <option>General</option>
+                  <option>Technical Support</option>
+                  <option>Billing</option>
+                  <option>Partnership</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Priority</label>
+                <select class="form-select" id="c_priority">
+                  <option>Normal</option>
+                  <option>High</option>
+                  <option>Urgent</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Message</label>
+                <textarea class="form-control" id="c_message" rows="5" required></textarea>
+              </div>
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="c_consent" required>
+                  <label class="form-check-label" for="c_consent">
+                    I agree to be contacted about my inquiry.
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-grid mt-3">
+              <button class="btn btn-primary" id="c_submit">Send Message</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side info -->
+    <div class="col-lg-5">
+      <div class="card mb-4">
+        <div class="card-header"><strong>Support Hours</strong></div>
+        <div class="card-body">
+          <p class="mb-2">Mon–Fri: 9:00 AM – 6:00 PM IST</p>
+          <p class="mb-0">Average response time: within 24 hours</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><strong>Tips for faster resolution</strong></div>
+        <div class="card-body">
+          <ul class="mb-0">
+            <li>Include screenshots or error messages (if any).</li>
+            <li>Mention steps to reproduce the issue.</li>
+            <li>Tell us your browser and OS (for UI issues).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Simple contact form handler: sends to /api/contact and shows status
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('contactForm');
+  const alertBox = document.getElementById('contactAlert');
+  const btn = document.getElementById('c_submit');
+
+  function showAlert(type, msg) {
+    alertBox.className = 'alert alert-' + type;
+    alertBox.textContent = msg;
+    alertBox.classList.remove('d-none');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!form.checkValidity()) {
+      showAlert('warning', 'Please fill all required fields.');
+      return;
+    }
+
+    const payload = {
+      name: document.getElementById('c_name').value.trim(),
+      email: document.getElementById('c_email').value.trim(),
+      phone: document.getElementById('c_phone').value.trim(),
+      subject: document.getElementById('c_subject').value.trim(),
+      category: document.getElementById('c_category').value,
+      priority: document.getElementById('c_priority').value,
+      message: document.getElementById('c_message').value.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      btn.disabled = true; btn.textContent = 'Sending...';
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const out = await res.json();
+
+      if (out.ok) {
+        showAlert('success', `Thanks! Your ticket ID is ${out.id}. We'll get back shortly.`);
+        form.reset();
+      } else {
+        showAlert('danger', 'Failed to send message. Please try again.');
+      }
+    } catch (err) {
+      showAlert('danger', 'Something went wrong. Please try again later.');
+      console.error(err);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Send Message';
+    }
+  });
+});
+</script>
+
+{% endblock %}

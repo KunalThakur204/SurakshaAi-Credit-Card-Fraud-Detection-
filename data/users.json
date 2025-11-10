@@ -1,0 +1,42 @@
+[
+  {
+    "id": "admin-1761504340620",
+    "name": "Admin",
+    "email": "admin@suraksha.com",
+    "password": "admin123",
+    "is_admin": true,
+    "created_on": "2025-10-26T18:45:40.620Z"
+  },
+  {
+    "id": "u-1761504910979",
+    "name": "Raanjha Bhardwaj",
+    "email": "24mca20338@cuchd.in",
+    "password": "Kunal@123",
+    "is_admin": false,
+    "created_on": "2025-10-26T18:55:10.979Z"
+  },
+  {
+    "id": "u-1761540917917",
+    "name": "Arshad Guleria",
+    "email": "aguleria23@cuchd.in",
+    "password": "Ayush2315@",
+    "is_admin": false,
+    "created_on": "2025-10-27T04:55:17.917Z"
+  },
+  {
+    "id": "u-1761714496523",
+    "name": "Shubham",
+    "email": "24mca20310@cuchd.in",
+    "password": "shuvi1235@Sk",
+    "is_admin": false,
+    "created_on": "2025-10-29T05:08:16.523Z"
+  },
+  {
+    "id": "u-1762414380747",
+    "name": "kunal",
+    "email": "abc123@gmail.com",
+    "password": "Kunal@123",
+    "is_admin": false,
+    "created_on": "2025-11-06T07:33:00.747Z"
+  }
+]

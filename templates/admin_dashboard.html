@@ -1,0 +1,306 @@
+{% extends "layout.html" %}
+{% block title %}Admin Panel - Suraksha AI{% endblock %}
+{% block content %}
+<div class="container my-5">
+  <div class="d-flex align-items-center justify-content-between flex-wrap">
+    <div>
+      <h2 class="mb-1">Admin Dashboard</h2>
+      <p class="text-muted mb-0">Local (browser) data + optional server snapshot JSON.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-3 mt-lg-0">
+      <button class="btn btn-primary btn-sm" id="btnExportUsers">Export Users JSON</button>
+      <button class="btn btn-primary btn-sm" id="btnExportPreds">Export Predictions JSON</button>
+      <button class="btn btn-outline-primary btn-sm" id="btnBackupServer">Backup to Server</button>
+      <button class="btn btn-outline-danger btn-sm" id="btnClearAll">Clear Local Data</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 my-3 text-center">
+    <div class="col-md-3">
+      <div class="card stat-card"><div class="card-body">
+        <h3 class="value mb-0" id="admTotalUsers">0</h3>
+        <p class="mb-0 text-muted">Total Users</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card"><div class="card-body">
+        <h3 class="value mb-0" id="admTotalPreds">0</h3>
+        <p class="mb-0 text-muted">Total Predictions</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card"><div class="card-body">
+        <h3 class="value mb-0" id="admFraudPreds">0</h3>
+        <p class="mb-0 text-muted">Fraud Detected</p>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card"><div class="card-body">
+        <h3 class="value mb-0" id="admFraudRate">0%</h3>
+        <p class="mb-0 text-muted">Fraud Rate</p>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <label class="form-label">Search by user</label>
+          <input class="form-control" id="admSearch" placeholder="Type name or email...">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Sort</label>
+          <select class="form-select" id="admSort">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="high">Highest probability</option>
+            <option value="low">Lowest probability</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="admOnlyFraud">
+            <label class="form-check-label" for="admOnlyFraud">Show only Fraud</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card hover-lift">
+        <div class="card-header"><strong>Fraud vs Legit Distribution</strong></div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="admDistChart"></canvas></div>
+          <div id="distFallback" class="text-muted small mt-2" style="display:none;">Chart unavailable (Chart.js not loaded).</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card hover-lift">
+        <div class="card-header"><strong>Probability Trend (recent)</strong></div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="admTrendChart"></canvas></div>
+          <div id="trendFallback" class="text-muted small mt-2" style="display:none;">Chart unavailable (Chart.js not loaded).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <strong>Predictions</strong>
+      <small class="text-muted" id="admCountHint"></small>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr><th>#</th><th>User</th><th>Prediction</th><th>Prob(%)</th><th>Time</th></tr>
+          </thead>
+          <tbody id="admRecentPreds"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin-only inline script (safe version) -->
+<script>
+(function(){
+  'use strict';
+
+  // DOM guards
+  if (!document.getElementById('admRecentPreds')) return;
+
+  // LocalStorage helpers
+  function getLS(key, fallback){ try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch(e){ return fallback; } }
+  function dlJSON(data, filename){
+    try{
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }catch(e){ console.error('Download failed', e); }
+  }
+  async function backupToServer(){
+    try{
+      const payload = { users: getLS('sai_users', []), predictions: getLS('sai_predictions', []) };
+      const res = await fetch('/api/save_snapshot', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const out = await res.json();
+      if (out.ok) alert(`Saved to server: users=${out.users}, predictions=${out.predictions}\nCheck data/users.json & data/predictions.json`);
+      else alert('Backup failed');
+    }catch(e){ alert('Backup failed'); console.error(e); }
+  }
+
+  // Elements
+  var usersEl = document.getElementById('admTotalUsers');
+  var predsEl = document.getElementById('admTotalPreds');
+  var fraudEl = document.getElementById('admFraudPreds');
+  var rateEl  = document.getElementById('admFraudRate');
+  var countHint = document.getElementById('admCountHint');
+
+  var searchInp = document.getElementById('admSearch');
+  var sortSel   = document.getElementById('admSort');
+  var onlyFraud = document.getElementById('admOnlyFraud');
+
+  var tbody = document.getElementById('admRecentPreds');
+
+  // Chart guards
+  var hasChart = (typeof window.Chart !== 'undefined');
+  var distChart = null, trendChart = null;
+
+  function safePred(p){ return p && p.result && typeof p.result.prediction === 'string' ? p.result.prediction : '-'; }
+  function safeProb(p){ return p && p.result && typeof p.result.probability === 'number' ? p.result.probability : 0; }
+  function safeTime(p){ try { return new Date(p.timestamp).toLocaleString(); } catch(e){ return '-'; } }
+
+  function refresh(){
+    try{
+      var users = getLS('sai_users', []);
+      var preds = getLS('sai_predictions', []);
+      var userMap = {};
+      users.forEach(function(u){ userMap[u.id] = u; });
+
+      // Stats
+      var totalUsers = users.length;
+      var totalPreds = preds.length;
+      var totalFraud = preds.filter(function(p){ return safePred(p) === 'Fraud'; }).length;
+      var fraudRate  = totalPreds ? ((totalFraud/totalPreds) * 100).toFixed(1) : 0;
+
+      usersEl && (usersEl.textContent = totalUsers);
+      predsEl && (predsEl.textContent = totalPreds);
+      fraudEl && (fraudEl.textContent = totalFraud);
+      rateEl  && (rateEl.textContent  = fraudRate + '%');
+
+      // Filtered view
+      var view = preds.slice(); // copy
+      var q = (searchInp && searchInp.value ? searchInp.value : '').trim().toLowerCase();
+      if (q) {
+        view = view.filter(function(p){
+          var u = userMap[p.user_id] || {};
+          var name = (u.name || '').toLowerCase();
+          var email = (u.email || '').toLowerCase();
+          return name.indexOf(q) !== -1 || email.indexOf(q) !== -1;
+        });
+      }
+      if (onlyFraud && onlyFraud.checked) {
+        view = view.filter(function(p){ return safePred(p) === 'Fraud'; });
+      }
+
+      if (sortSel) {
+        switch (sortSel.value) {
+          case 'oldest':
+            view.sort(function(a,b){ return new Date(a.timestamp) - new Date(b.timestamp); }); break;
+          case 'high':
+            view.sort(function(a,b){ return safeProb(b) - safeProb(a); }); break;
+          case 'low':
+            view.sort(function(a,b){ return safeProb(a) - safeProb(b); }); break;
+          default:
+            view.sort(function(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+        }
+      }
+
+      var LIMIT = 200;
+      var display = view.slice(0, LIMIT);
+      countHint && (countHint.textContent = display.length + ' shown (of ' + view.length + ' filtered; total ' + totalPreds + ')');
+
+      // Table
+      if (tbody) {
+        tbody.innerHTML = display.map(function(p, idx){
+          var u = userMap[p.user_id] || {};
+          var name = u.name ? (u.name + ' (' + (u.email || '-') + ')') : 'Unknown';
+          var isF = safePred(p) === 'Fraud';
+          var probPct = (safeProb(p) * 100).toFixed(1);
+          var t = safeTime(p);
+          return '<tr>' +
+              '<td>' + (idx+1) + '</td>' +
+              '<td>' + name + '</td>' +
+              '<td><span class="badge ' + (isF ? 'bg-danger' : 'bg-success') + '">' + safePred(p) + '</span></td>' +
+              '<td>' + probPct + '</td>' +
+              '<td>' + t + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      // Charts
+      if (!hasChart) {
+        var distFb = document.getElementById('distFallback');
+        var trendFb = document.getElementById('trendFallback');
+        if (distFb) distFb.style.display = 'block';
+        if (trendFb) trendFb.style.display = 'block';
+        return; // Skip charts if Chart.js not loaded
+      }
+
+      // Distribution from ALL preds
+      var legit = preds.length - totalFraud;
+      var fraud = totalFraud;
+      var distCtx = document.getElementById('admDistChart');
+      if (distCtx && distCtx.getContext) {
+        distCtx = distCtx.getContext('2d');
+        if (distChart) distChart.destroy();
+        distChart = new Chart(distCtx, {
+          type:'doughnut',
+          data:{ labels:['Legitimate','Fraud'], datasets:[{ data:[legit, fraud], backgroundColor:['#27ae60','#e74c3c'] }] },
+          options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+        });
+      }
+
+      // Trend from filtered (recent 40)
+      var recent = display.slice(0, 40).reverse();
+      var trendLabels = recent.map(function(_,i){ return 'Tx ' + (i+1); });
+      var trendVals = recent.map(function(p){ return safeProb(p) * 100; });
+      var trendCtx = document.getElementById('admTrendChart');
+      if (trendCtx && trendCtx.getContext) {
+        trendCtx = trendCtx.getContext('2d');
+        if (trendChart) trendChart.destroy();
+        trendChart = new Chart(trendCtx, {
+          type:'line',
+          data:{ labels: trendLabels, datasets:[{ label:'Fraud Probability (%)', data: trendVals, borderColor:'#4A00E0', backgroundColor:'rgba(142,45,226,.15)', fill:true, tension:.15 }] },
+          options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100 } } }
+        });
+      }
+
+    } catch(err){
+      console.error('Admin refresh error:', err);
+    }
+  }
+
+  // Wire actions (with null-guards)
+  var btnEU = document.getElementById('btnExportUsers');
+  if (btnEU) btnEU.onclick = function(){ dlJSON(getLS('sai_users', []), 'users.json'); };
+
+  var btnEP = document.getElementById('btnExportPreds');
+  if (btnEP) btnEP.onclick = function(){ dlJSON(getLS('sai_predictions', []), 'predictions.json'); };
+
+  var btnBK = document.getElementById('btnBackupServer');
+  if (btnBK) btnBK.onclick = backupToServer;
+
+  var btnCL = document.getElementById('btnClearAll');
+  if (btnCL) btnCL.onclick = function(){
+    if (!confirm('This will clear all local data (users, predictions, session). Continue?')) return;
+    localStorage.removeItem('sai_users');
+    localStorage.removeItem('sai_predictions');
+    localStorage.removeItem('sai_current_user');
+    alert('Cleared. Admin seed will re-create on reload.');
+    location.reload();
+  };
+
+  var searchInp = document.getElementById('admSearch');
+  var sortSel   = document.getElementById('admSort');
+  var onlyFraud = document.getElementById('admOnlyFraud');
+
+  if (searchInp) searchInp.addEventListener('input', refresh);
+  if (sortSel) sortSel.addEventListener('change', refresh);
+  if (onlyFraud) onlyFraud.addEventListener('change', refresh);
+
+  // Initial render
+  refresh();
+})();
+</script>
+{% endblock %}

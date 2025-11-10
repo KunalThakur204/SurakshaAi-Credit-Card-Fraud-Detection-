@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Suraksha AI{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark gradient-bg">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="" style="height:28px; margin-right:8px;">
+        Suraksha AI
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
+          <li class="nav-item d-none" id="navDashboard"><a class="nav-link" href="{{ url_for('user_dashboard') }}">My Dashboard</a></li>
+          <li class="nav-item d-none" id="navAdmin"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Panel</a></li>
+          <li class="nav-item" id="navLogin"><a class="btn btn-outline-light ms-2" href="{{ url_for('login_page') }}">Login</a></li>
+          <li class="nav-item" id="navRegister"><a class="btn btn-light ms-2" href="{{ url_for('register_page') }}">Register</a></li>
+          <li class="nav-item d-none" id="navLogout"><button class="btn btn-light ms-2" id="logoutBtn">Logout</button></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  {% block content %}{% endblock %}
+
+  <footer class="py-4 text-center mt-5 footer-dark">
+    <div class="container">
+      <p class="mb-0">&copy; 2024 Suraksha AI. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

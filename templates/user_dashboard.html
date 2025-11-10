@@ -1,0 +1,304 @@
+{% extends "layout.html" %}
+{% block title %}My Dashboard - Suraksha AI{% endblock %}
+{% block content %}
+<div class="container my-5">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
+    <div>
+      <h2 class="mb-1">Transaction Risk Analyzer</h2>
+      <p class="text-muted mb-0">Enter values (0.00–1.00) for risk signals. Data saves in your browser (LocalStorage) and auto-backups to /data JSON if enabled.</p>
+    </div>
+    <div class="d-flex gap-2 mt-3 mt-lg-0">
+      <span class="badge bg-success">Real-time</span>
+      <span class="badge bg-info">32 signals</span>
+      <span class="badge bg-warning text-dark">JSON Backup</span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- LEFT: Input form -->
+    <div class="col-lg-5">
+      <div class="card hover-lift">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong>Enter Transaction Details</strong>
+          <span class="badge badge-soft">Tip: Use quick-fill to test fast</span>
+        </div>
+        <div class="card-body">
+
+          <!-- Quick actions -->
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Fills typical fraud-pattern values" onclick="fillHighRisk()">⚠️ High Risk</button>
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Fills typical legitimate values" onclick="fillLowRisk()">✅ Low Risk</button>
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Sets most sliders to 0.50 baseline" onclick="fillNeutral()">⚖️ Neutral</button>
+            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" title="Reset all fields to default" onclick="resetInputs()">🧹 Reset</button>
+          </div>
+
+          <form id="predictionForm">
+            <!-- Basic -->
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label" data-bs-toggle="tooltip" title="Seconds since first transaction">⏱ Transaction Time</label>
+                <input class="form-control" id="transaction_time" type="number" step="any" min="0" placeholder="0">
+                <small class="form-text">e.g., 0</small>
+              </div>
+              <div class="col-6">
+                <label class="form-label" data-bs-toggle="tooltip" title="Transaction amount in USD">💰 Amount ($)</label>
+                <input class="form-control" id="Amount" type="number" step="any" min="0" placeholder="149.62">
+                <small class="form-text">e.g., 149.62</small>
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Accordion for grouped signals -->
+            <div class="accordion" id="riskAccordion">
+
+              <!-- Transaction Characteristics -->
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="h-tc">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#c-tc" aria-expanded="true">Transaction Characteristics</button>
+                </h2>
+                <div id="c-tc" class="accordion-collapse collapse show" data-bs-parent="#riskAccordion">
+                  <div class="accordion-body">
+                    <div class="row g-3">
+                      <div class="col-6"><label class="form-label">transaction_type_score</label><input class="form-control" id="transaction_type_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">transaction_pattern_score</label><input class="form-control" id="transaction_pattern_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">transaction_amount_pattern</label><input class="form-control" id="transaction_amount_pattern" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">transaction_context_score</label><input class="form-control" id="transaction_context_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">transaction_frequency_score</label><input class="form-control" id="transaction_frequency_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Location & Merchant -->
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="h-lm">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-lm">Location & Merchant</button>
+                </h2>
+                <div id="c-lm" class="accordion-collapse collapse" data-bs-parent="#riskAccordion">
+                  <div class="accordion-body">
+                    <div class="row g-3">
+                      <div class="col-6"><label class="form-label">location_risk_score</label><input class="form-control" id="location_risk_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">merchant_category_score</label><input class="form-control" id="merchant_category_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">merchant_trust_score</label><input class="form-control" id="merchant_trust_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">geo_location_score</label><input class="form-control" id="geo_location_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Customer Behavior -->
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="h-cb">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-cb">Customer Behavior</button>
+                </h2>
+                <div id="c-cb" class="accordion-collapse collapse" data-bs-parent="#riskAccordion">
+                  <div class="accordion-body">
+                    <div class="row g-3">
+                      <div class="col-6"><label class="form-label">customer_profile_score</label><input class="form-control" id="customer_profile_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">customer_behavior_score</label><input class="form-control" id="customer_behavior_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">spending_behavior_score</label><input class="form-control" id="spending_behavior_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">spending_risk_score</label><input class="form-control" id="spending_risk_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Device & Card -->
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="h-dc">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-dc">Device & Card</button>
+                </h2>
+                <div id="c-dc" class="accordion-collapse collapse" data-bs-parent="#riskAccordion">
+                  <div class="accordion-body">
+                    <div class="row g-3">
+                      <div class="col-6"><label class="form-label">device_risk_score</label><input class="form-control" id="device_risk_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">unusual_device_score</label><input class="form-control" id="unusual_device_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">card_usage_pattern</label><input class="form-control" id="card_usage_pattern" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">card_risk_score</label><input class="form-control" id="card_risk_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-12"><label class="form-label">payment_channel_score</label><input class="form-control" id="payment_channel_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Anomaly & Network -->
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="h-an">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-an">Anomaly & Network</button>
+                </h2>
+                <div id="c-an" class="accordion-collapse collapse" data-bs-parent="#riskAccordion">
+                  <div class="accordion-body">
+                    <div class="row g-3">
+                      <div class="col-6"><label class="form-label">velocity_score</label><input class="form-control" id="velocity_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">unusual_activity_score</label><input class="form-control" id="unusual_activity_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">historical_risk_score</label><input class="form-control" id="historical_risk_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">anomaly_detection_score</label><input class="form-control" id="anomaly_detection_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-12"><label class="form-label">network_activity_score</label><input class="form-control" id="network_activity_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fraud Indicators -->
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="h-fi">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c-fi">Fraud Indicators</button>
+                </h2>
+                <div id="c-fi" class="accordion-collapse collapse" data-bs-parent="#riskAccordion">
+                  <div class="accordion-body">
+                    <div class="row g-3">
+                      <div class="col-6"><label class="form-label">fraud_suspect_score</label><input class="form-control" id="fraud_suspect_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">fraud_tendency_score</label><input class="form-control" id="fraud_tendency_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">fraud_probability_score</label><input class="form-control" id="fraud_probability_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-6"><label class="form-label">fraud_indicator_score</label><input class="form-control" id="fraud_indicator_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                      <div class="col-12"><label class="form-label">suspicious_pattern_score</label><input class="form-control" id="suspicious_pattern_score" type="number" step="0.01" min="0" max="1" value="0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="d-grid mt-3">
+              <button class="btn btn-primary" id="submitBtn">🔍 Analyze Transaction Risk</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Legend / Tips -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-3 align-items-center">
+            <span class="badge bg-success">Prob < 50% → Legitimate</span>
+            <span class="badge bg-warning text-dark">50–60% → Review</span>
+            <span class="badge bg-danger">≥ 60% → Fraud</span>
+          </div>
+          <small class="text-muted d-block mt-2">Thresholds are configurable; current UI shows model/dummy output.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results and analytics -->
+    <div class="col-lg-7">
+      <!-- Result -->
+      <div class="card mb-3" id="resultCard" style="display:none;">
+        <div class="card-header"><strong>Result</strong></div>
+        <div class="card-body">
+          <div id="resultContent"></div>
+          <div class="chart-container mt-3"><canvas id="probabilityChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Session Stats -->
+      <div class="card mb-3" id="statsSection" style="display:none;">
+        <div class="card-header"><strong>My Session Stats</strong></div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-4"><h4 class="stat-card value" id="totalCount">0</h4><p class="mb-0">Total</p></div>
+            <div class="col-4"><h4 class="stat-card value" id="fraudCount">0</h4><p class="mb-0">Fraud</p></div>
+            <div class="col-4"><h4 class="stat-card value" id="fraudRate">0%</h4><p class="mb-0">Fraud Rate</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trend -->
+      <div class="card hover-lift" id="trendSection" style="display:none;">
+        <div class="card-header"><strong>Risk Trend</strong></div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="trendChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Extra info -->
+      <div class="row g-3 mt-1">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="text-gradient mb-1">Pro Tip</h6>
+              <small class="text-muted">Signals ko 0.00–1.00 par normalize rakhiye. Extreme values (0.85+) high risk indicate kar sakti hain.</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="text-gradient mb-1">Export/Backup</h6>
+              <small class="text-muted">Admin panel me JSON backup available. Dev-mode ke liye best; production me real DB use karein.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Page-only helpers: tooltips + quick-fill -->
+<script>
+  // Enable Bootstrap tooltips on this page
+  document.addEventListener('DOMContentLoaded', () => {
+    const tList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tList.map(el => new bootstrap.Tooltip(el));
+  });
+
+  // Field IDs (ensure these stay in sync with form IDs)
+  const FIELDS = [
+    "transaction_time","Amount",
+    "transaction_type_score","transaction_pattern_score",
+    "transaction_amount_pattern","transaction_context_score",
+    "transaction_frequency_score","location_risk_score",
+    "merchant_category_score","merchant_trust_score",
+    "geo_location_score","customer_profile_score",
+    "customer_behavior_score","spending_behavior_score",
+    "spending_risk_score","device_risk_score",
+    "unusual_device_score","card_usage_pattern",
+    "card_risk_score","payment_channel_score",
+    "velocity_score","unusual_activity_score",
+    "historical_risk_score","anomaly_detection_score",
+    "network_activity_score","fraud_suspect_score",
+    "fraud_tendency_score","fraud_probability_score",
+    "fraud_indicator_score","suspicious_pattern_score"
+  ];
+
+  function setVal(id, v){ const el = document.getElementById(id); if (el) el.value = v; }
+
+  function resetInputs(){
+    // Basic
+    setVal('transaction_time', '');
+    setVal('Amount', '');
+    // Signals default to 0.50
+    FIELDS.slice(2).forEach(id => setVal(id, 0.5));
+  }
+
+  function fillNeutral(){
+    setVal('transaction_time', 0);
+    setVal('Amount', 120.00);
+    FIELDS.slice(2).forEach(id => setVal(id, 0.5));
+  }
+
+  function fillLowRisk(){
+    setVal('transaction_time', 2);
+    setVal('Amount', 25.00);
+    const lows = {
+      fraud_suspect_score:0.08, unusual_activity_score:0.05, device_risk_score:0.12,
+      transaction_amount_pattern:0.10, card_risk_score:0.12, velocity_score:0.10
+    };
+    FIELDS.slice(2).forEach(id => setVal(id, lows[id] ?? 0.25));
+  }
+
+  function fillHighRisk(){
+    setVal('transaction_time', 10);
+    setVal('Amount', 950.50);
+    const highs = {
+      fraud_suspect_score:0.92, unusual_activity_score:0.85, device_risk_score:0.78,
+      transaction_amount_pattern:0.90, velocity_score:0.82, card_risk_score:0.80,
+      anomaly_detection_score:0.84, network_activity_score:0.78, payment_channel_score:0.75
+    };
+    FIELDS.slice(2).forEach(id => setVal(id, highs[id] ?? 0.68));
+  }
+</script>
+{% endblock %}

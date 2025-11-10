@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+{% block title %}Register - Suraksha AI{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width:720px;">
+
+  <div class="text-center mb-4">
+    <span class="badge bg-light text-dark">Create your account</span>
+    <h2 class="mt-2 mb-1">Join Suraksha AI</h2>
+    <p class="text-muted mb-0">Fast, elegant fraud detection with beautiful analytics.</p>
+  </div>
+
+  <div class="card hover-lift">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h4 class="mb-0">Register</h4>
+      <span class="badge badge-soft">Dev Mode: LocalStorage</span>
+    </div>
+    <div class="card-body">
+      <form id="registerForm" novalidate>
+        <!-- Name -->
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <div class="input-group">
+            <span class="input-group-text">👤</span>
+            <input class="form-control" id="regName" placeholder="e.g., Rohan Verma" autocomplete="name" required>
+          </div>
+          <small class="text-muted">This will appear on your dashboard and admin logs.</small>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <div class="input-group">
+            <span class="input-group-text">📧</span>
+            <input class="form-control" id="regEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+          <small class="text-muted">Use a valid email (used for login).</small>
+        </div>
+
+        <!-- Password + strength -->
+        <div class="mb-2">
+          <label class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text">🔒</span>
+            <input class="form-control" id="regPassword" type="password" placeholder="Create a strong password" autocomplete="new-password" minlength="6" required>
+            <button class="btn btn-outline-secondary" id="pwToggle">Show</button>
+          </div>
+        </div>
+        <div class="mb-2">
+          <div class="progress" style="height:8px;">
+            <div class="progress-bar bg-secondary" id="pwBar" style="width:0%"></div>
+          </div>
+          <small id="pwText" class="text-muted">Enter a strong password</small>
+          <small id="capsHint" class="text-warning d-block mt-1" style="display:none;">Caps Lock is ON</small>
+        </div>
+
+        <!-- Tips -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="p-3 rounded-3" style="background:#f7f9ff;">
+              <strong class="d-block mb-1 text-gradient">Pro Tips</strong>
+              <ul class="mb-0 small text-muted">
+                <li>8+ characters</li>
+                <li>Mix UPPER/lowercase</li>
+                <li>Numbers & symbols</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 rounded-3" style="background:#f7f9ff;">
+              <strong class="d-block mb-1 text-gradient">What you get</strong>
+              <ul class="mb-0 small text-muted">
+                <li>Dashboard with charts</li>
+                <li>Local JSON backups</li>
+                <li>Plug-in your .pkl model</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100">Create Account</button>
+      </form>
+
+      <p class="text-center mt-3 mb-0">
+        Already have an account?
+        <a href="{{ url_for('login_page') }}">Login</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Page helpers: password strength + show/hide + caps lock hint -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const pwd = document.getElementById('regPassword');
+  const bar = document.getElementById('pwBar');
+  const txt = document.getElementById('pwText');
+  const toggle = document.getElementById('pwToggle');
+  const caps = document.getElementById('capsHint');
+
+  function score(p) {
+    let s = 0;
+    if (p.length >= 8) s++;
+    if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+    if (/\d/.test(p)) s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+    return s; // 0..4
+  }
+  function render() {
+    const p = pwd.value || '';
+    const s = score(p);
+    const widths = [10, 35, 65, 85, 100];
+    const labels = ['Very Weak','Weak','Fair','Good','Strong'];
+    const classes = ['bg-secondary','bg-danger','bg-warning text-dark','bg-info','bg-success'];
+    bar.style.width = widths[s] + '%';
+    bar.className = 'progress-bar ' + classes[s];
+    txt.textContent = p ? labels[s] : 'Enter a strong password';
+  }
+
+  pwd.addEventListener('input', render);
+  pwd.addEventListener('keyup', (e) => {
+    if (e.getModifierState) caps.style.display = e.getModifierState('CapsLock') ? 'block' : 'none';
+  });
+
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    const type = pwd.getAttribute('type') === 'password' ? 'text' : 'password';
+    pwd.setAttribute('type', type);
+    toggle.textContent = type === 'password' ? 'Show' : 'Hide';
+  });
+
+  render();
+});
+</script>
+{% endblock %}
